@@ -1,10 +1,11 @@
-package ICan;
+package Ican;
 use Mojo::Base 'Mojolicious';
 
 # This method will run once at server start
 sub startup {
   my $self = shift;
-
+  #Bootstrap
+  $self->plugin('Config');
   # Documentation browser under "/perldoc"
   $self->plugin('PODRenderer');
 

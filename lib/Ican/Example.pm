@@ -1,4 +1,4 @@
-package ICan::Example;
+package Ican::Example;
 use Mojo::Base 'Mojolicious::Controller';
 
 # This action will render a template
