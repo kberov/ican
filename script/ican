@@ -2,10 +2,12 @@
 
 use strict;
 use warnings;
-
+BEGIN{
+  $ENV{MOJO_MODE} ||='development';
+}
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 
 # Start commands for application
 require Mojolicious::Commands;
-Mojolicious::Commands->start_app('ICan');
+Mojolicious::Commands->start_app('Ican');
