@@ -2,9 +2,6 @@
 
 use strict;
 use warnings;
-BEGIN{
-  $ENV{MOJO_MODE} ||='development';
-}
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 

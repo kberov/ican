@@ -4,6 +4,9 @@ use File::Basename 'dirname';
 use Cwd;
 use File::Spec::Functions qw(catdir);
 
+#Default mode needs to be defined
+$ENV{MOJO_MODE} ||= 'development';
+
 # Switch to installable home directory
 $ENV{MOJO_APP} ||= __PACKAGE__;
 $ENV{MOJO_HOME} ||= catdir(Cwd::abs_path(dirname(__FILE__)), $ENV{MOJO_APP});
@@ -35,31 +38,32 @@ sub startup {
 #Bootstrap
 sub bootstrap {
   my ($app) = @_;
-
-  # Switch to installable "public" directory
-  $app->static->paths->[0] = $app->home->rel_dir('public');
-  warn $app->home->rel_dir('templates');
-
-  # Switch to installable "templates" directory
-  $app->renderer->paths->[0] = $app->home->rel_dir('templates');
-
   $app->plugin('Config');
 
-  # Documentation browser under "/perldoc"
-  $app->plugin('PODRenderer');
+  # Prepend "public" directories from config file
+  @{$app->config('static_paths')}
+    and unshift(@{$app->static->paths || []}, @{$app->config('static_paths')});
+  $app->debug(@{$app->static->paths});
 
+  # Prepend "templates" directories from config file
+  @{$app->config('renderer_paths') || []}
+    and unshift(@{$app->renderer->paths}, @{$app->config('renderer_paths')});
+
+  # Prepend "plugins" namespaces from config file
+  @{$app->config('plugins_namespaces') || []}
+    and unshift(@{$app->plugins->namespaces}, @{$app->config('plugins_namespaces')});
 }
 
 #load plugins from config file
 sub load_plugins {
   my ($app) = @_;
-  $app->plugins->namespaces($app->config('plugins_namespaces'));
   my $plugins = $app->config('plugins') || {};
+
   foreach my $plugin (keys %$plugins) {
-    if ($plugins->{$plugin} && ref($plugins->{$plugin}) eq 'HASH') {
+    if (ref($plugins->{$plugin}) eq 'HASH') {
       $app->plugin($plugin => $plugins->{$plugin});
     }
-    elsif ($plugins->{$plugin} && $plugins->{$plugin} =~ /^(1|y|true|on)/ix) {
+    elsif ($plugins->{$plugin} =~ /^(1|y|true|on)/ix) {
       $app->plugin($plugin);
     }
   }
@@ -111,4 +115,7 @@ sub add_types {
   }
   return;
 }
+
+sub debug { shift->log->debug(@_) }
+
 1;
